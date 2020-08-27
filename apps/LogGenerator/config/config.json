@@ -1,0 +1,48 @@
+{       "logging": {
+		"level":  "debug",
+		"filters" : [
+			"dbg"
+		],
+		"consumers": [
+			{
+				"name": "file",
+				"file": {
+					"path": "logs",
+					"prefix": "App_",
+					"suffix": ".log"
+				},
+				"max": {
+					"file_size": 1024,
+					"files": 3
+				}
+			},
+			{
+				"name": "error",
+				"file": {
+					"path": "logs",
+					"prefix": "App_",
+					"suffix": ".log"
+				},
+				"max": {
+					"entries": 100
+				}
+			},
+			{
+				"name": "console"
+			},
+			{
+				"name": "detached"
+			}
+		]
+	},
+	"components": {
+		"Producer": {
+			"period": 500,
+			"unit": "milliseconds",
+			"msg_id": "ENTRY_ADDED"
+		},
+		"MessageConsumer": {
+			"msg_id": "ENTRY_ADDED"
+		}
+        }
+}

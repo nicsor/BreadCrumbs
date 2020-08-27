@@ -1,0 +1,18 @@
+{
+	"level":  "error",
+	"filters" : [
+		"abcd","smth","1213"
+	],
+	"config": [
+		{
+			"name": "FileLogger",
+			"file_name": "FileLogger.log",
+			"file_path": "logs",
+			"max_nr_of_entries": "5",
+			"max_file_size": "1024"
+		},
+		{
+			"name": "DefaultLogger"
+		}
+	]
+}
