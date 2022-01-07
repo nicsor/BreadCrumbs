@@ -11,7 +11,9 @@
  */
 
 #include <chrono>
+#include <execinfo.h>
 #include <list>
+#include <signal.h>
 #include <thread>
 
 #include <boost/property_tree/json_parser.hpp>
@@ -24,8 +26,22 @@ namespace {
     const char * CONFIG_FILE = "config.json";
 }
 
+
+void handler(int sig) {
+    void *array[32];
+    size_t size;
+
+    size = backtrace(array, 32);
+
+    fprintf(stderr, "Error: signal %d:\n", sig);
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
+    exit(1);
+}
+
 int main(int argc, char* arcv[])
 {
+    signal(SIGSEGV, handler);
+
     // List of components
     std::list<core::Component*> componentList;
 
