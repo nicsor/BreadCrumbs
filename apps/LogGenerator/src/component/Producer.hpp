@@ -49,8 +49,8 @@ namespace component
 
 	protected:
 
-		/** Function executed in thread */
-		void handler();
+		/** Periodic function */
+		void handler(const boost::system::error_code &e);
 
 		// Encapsulated data
 	private:
@@ -72,6 +72,9 @@ namespace component
 
 		/** Stop flag */
 		bool m_stop;
+
+		/** Last published message id */
+		uint32_t m_last_published_message_id;
 	};
 }
 

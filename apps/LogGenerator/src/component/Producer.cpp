@@ -16,7 +16,7 @@ namespace component
 	Producer Producer::_prototype;
 
 	Producer::Producer() :
-			m_duration_ms(0), m_stop(true)
+			m_duration_ms(0), m_stop(true), m_last_published_message_id(0)
 	{
 		Component::addPrototype("Producer", this);
 	}
@@ -24,11 +24,15 @@ namespace component
 	Producer::Producer(const Producer &base)
 	{
 		auto track = core::util::TimeTracker(__PRETTY_FUNCTION__);
+
+		m_duration_ms = base.m_duration_ms;
+		m_stop = base.m_stop;
+		m_last_published_message_id = base.m_last_published_message_id;
 	}
 
 	Producer::~Producer()
 	{
-		auto track = core::util::TimeTracker(__PRETTY_FUNCTION__);
+		// auto track = core::util::TimeTracker(__PRETTY_FUNCTION__);
 		stop();
 	}
 
@@ -48,9 +52,8 @@ namespace component
 		{
 			timePeriod *= 1000;
 		}
-
-		else {
-
+		else
+		{
 			if (timeUnit != "milliseconds")
 			{
 				LOG_ERROR(
@@ -66,30 +69,28 @@ namespace component
 		return clone;
 	}
 
-	void Producer::handler()
+	void Producer::handler(const boost::system::error_code &e)
 	{
-		LOG_DEBUG("dbg", "Producer: entered handler");
-		uint32_t msgPublishedCount = 0;
-
-		while (not m_stop) {
-			std::this_thread::sleep_for(
-					std::chrono::milliseconds{this->m_duration_ms});
-
-			auto track = core::util::TimeTracker(__PRETTY_FUNCTION__);
-			LOG_ERROR("dbg", "test message ");
-
-			if (not m_published_message.empty())
-			{
-				core::MessageData attr("count", ++msgPublishedCount);
-
-				LOG_DEBUG("dbg",
-					"Producer: publishing message-id: %s with value: %u",
-					m_published_message.c_str(),
-					attr.get<uint32_t>("count"));
-				post(m_published_message, attr);
-			}
+		if (e)
+		{
+			return;
 		}
 
+		LOG_DEBUG("dbg", "Producer: entered handler");
+
+		auto track = core::util::TimeTracker(__PRETTY_FUNCTION__);
+		LOG_ERROR("dbg", "test message ");
+
+		if (not m_published_message.empty())
+		{
+			core::MessageData attr("count", ++m_last_published_message_id);
+
+			LOG_DEBUG("dbg",
+				"Producer: publishing message-id: %s with value: %u",
+				m_published_message.c_str(),
+				attr.get<uint32_t>("count"));
+			post(m_published_message, attr);
+		}
 	}
 
 	void Producer::stop()
@@ -99,7 +100,8 @@ namespace component
 		std::scoped_lock lock(this->m_producer_mutex);
 		LOG_DEBUG("dbg", "Producer: stopping producer");
 
-		if (not m_stop) {
+		if (not m_stop)
+		{
 			// Set stop flag
 			m_stop = true;
 
@@ -121,7 +123,14 @@ namespace component
 		{
 			m_stop = false;
 
-			m_thread = std::thread(&Producer::handler, this);
+			core::TimeoutHandler handler = std::bind(
+					&Producer::handler,
+					this,
+					std::placeholders::_1);
+
+			setPeriodicTimer(
+				handler,
+				std::chrono::milliseconds{this->m_duration_ms});
 		}
 	}
 }
