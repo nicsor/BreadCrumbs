@@ -20,6 +20,7 @@
 #include <string>
 #include <map>
 
+#include <boost/asio.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/signals2.hpp>
@@ -29,11 +30,14 @@
 namespace core
 {
 	// Poorly defined types ... TO FIX
+	typedef uint64_t TimerId;
 	typedef std::string MessageId;
 	typedef core::util::Attributes MessageData;
 	typedef boost::signals2::signal<void (MessageData)> Signal;
 	typedef boost::ptr_map<std::string, Signal>  SignalMap;
 	typedef std::function<void (const MessageData&)> MessageHandler;
+	typedef std::function<void (const boost::system::error_code &)> TimeoutHandler;
+
 
 	namespace
 	{
@@ -85,6 +89,30 @@ namespace core
 			/** Method to publish a message-id */
 			void post(const MessageId& messageName, const MessageData& message);
 
+			/** Method to start a one shot timer */
+			TimerId setOneShotTimer(
+				TimeoutHandler handler,
+				const std::chrono::steady_clock::duration &duration);
+
+			/** Method to start a periodic timer */
+			TimerId setPeriodicTimer(
+				TimeoutHandler handler,
+				const std::chrono::steady_clock::duration &period);
+
+			/** Method to cancel a running timer */
+			bool cancelTimer(TimerId timer);
+
+		protected:
+			/** Method to get a unique timer id */
+			TimerId getNextTimerId();
+
+			/** Method to handle periodic timer expiration */
+			void handleTimeout(
+				TimeoutHandler handler,
+				const TimerId timerId,
+				const std::chrono::steady_clock::duration period,
+				const boost::system::error_code &e);
+
 		protected:
 
 			/** Map of all registered signals */
@@ -98,6 +126,11 @@ namespace core
 
 			/** Available components */
 			static uint32_t m_components_count;
+
+			std::map<TimerId, std::shared_ptr<boost::asio::steady_timer>> m_timers;
+
+			/** Last allocated timer */
+			TimerId m_last_timer_id;
 	};
 }
 

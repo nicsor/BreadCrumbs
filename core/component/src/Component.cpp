@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <thread>
 
 #include <core/logger/event_logger.h>
 #include <core/Component.hpp>
@@ -24,6 +25,19 @@ namespace core
 
 	Component::~Component()
 	{
+		std::vector<TimerId> timerIds;
+		std::transform(
+			m_timers.begin(),
+			m_timers.end(),
+			std::back_inserter(timerIds),
+			[](auto const &entry) {return entry.first;});
+
+		for (auto& timerId : timerIds)
+		{
+			cancelTimer(timerId);
+		}
+
+		m_timers.clear();
 	}
 
 	Component* Component::addPrototype(const char* type, Component* p)
@@ -96,5 +110,94 @@ namespace core
 		{
 			m_signal_map[messageName](message);
 		}
+	}
+
+	TimerId Component::setOneShotTimer(
+		TimeoutHandler handler,
+		const std::chrono::steady_clock::duration &duration)
+	{
+		TimerId timerId = getNextTimerId();
+		std::thread thr(
+			[this, timerId, handler, duration]
+			{
+				boost::asio::io_context io;
+				m_timers[timerId] = std::make_shared<boost::asio::steady_timer>(io);
+				m_timers[timerId]->expires_after(duration);
+				m_timers[timerId]->async_wait(handler);
+
+				io.run();
+				m_timers.erase(timerId);
+			});
+		thr.detach();
+		return timerId;
+	}
+
+	TimerId Component::setPeriodicTimer(
+		TimeoutHandler handler,
+		const std::chrono::steady_clock::duration &period)
+	{
+		TimerId timerId = getNextTimerId();
+		std::thread thr(
+			[this, timerId, handler, period]
+			{
+				boost::asio::io_context io;
+				m_timers[timerId] = std::make_shared<boost::asio::steady_timer>(io);
+				m_timers[timerId]->expires_after(period);
+				m_timers[timerId]->async_wait(
+					boost::bind(
+						&Component::handleTimeout,
+						this,
+						handler,
+						timerId,
+						period,
+						boost::asio::placeholders::error));
+
+				io.run();
+			});
+		thr.detach();
+		return timerId;
+	}
+
+	bool Component::cancelTimer(TimerId timerId)
+	{
+		if (m_timers.count(timerId))
+		{
+			m_timers[timerId]->cancel();
+			m_timers.erase(timerId);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	TimerId Component::getNextTimerId()
+	{
+		return ++m_last_timer_id;
+	}
+
+	void Component::handleTimeout(
+		TimeoutHandler handler,
+		const TimerId timerId,
+		const std::chrono::steady_clock::duration period,
+		const boost::system::error_code &e)
+	{
+		if (e.value())
+		{
+			cancelTimer(timerId);
+			return;
+		}
+
+		handler(e);
+
+		m_timers[timerId]->expires_after(period);
+		m_timers[timerId]->async_wait(
+			boost::bind(
+				&Component::handleTimeout,
+				this,
+				handler,
+				timerId,
+				period,
+				boost::asio::placeholders::error));
 	}
 }
