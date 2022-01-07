@@ -24,11 +24,13 @@
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/signals2.hpp>
 
+#include <core/util/Attributes.hpp>
+
 namespace core
 {
 	// Poorly defined types ... TO FIX
 	typedef std::string MessageId;
-	typedef std::any MessageData;
+	typedef core::util::Attributes MessageData;
 	typedef boost::signals2::signal<void (MessageData)> Signal;
 	typedef boost::ptr_map<std::string, Signal>  SignalMap;
 	typedef std::function<void (const MessageData&)> MessageHandler;

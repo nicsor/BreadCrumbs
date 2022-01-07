@@ -80,13 +80,13 @@ namespace component
 
 			if (not m_published_message.empty())
 			{
-				std::any value = ++msgPublishedCount;
+				core::MessageData attr("count", ++msgPublishedCount);
 
 				LOG_DEBUG("dbg",
 					"Producer: publishing message-id: %s with value: %u",
 					m_published_message.c_str(),
-					std::any_cast<uint32_t>(value));
-				post(m_published_message, value);
+					attr.get<uint32_t>("count"));
+				post(m_published_message, attr);
 			}
 		}
 

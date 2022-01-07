@@ -27,7 +27,7 @@ namespace component
 	{
 		LOG_INFO("dbg",
 			"MessageConsumer: received message with value: %u",
-			std::any_cast<uint32_t>(msg));
+			msg.get<uint32_t>("count"));
 	}
 
 	MessageConsumer* MessageConsumer::clone(const boost::property_tree::ptree::value_type& component)
