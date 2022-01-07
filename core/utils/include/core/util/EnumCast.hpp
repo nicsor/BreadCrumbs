@@ -12,6 +12,7 @@
 
 #include <core/logger/event_logger.h>
 #include <map>
+#include <string>
 
 namespace core
 {

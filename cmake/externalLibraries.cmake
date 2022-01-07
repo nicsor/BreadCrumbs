@@ -20,14 +20,15 @@ endif (NOT Boost_FOUND)
 find_package(PkgConfig REQUIRED)
 
 # GTest
-find_package(GTest)
-if (GTEST_FOUND)
-    enable_testing()
-    # Global tests
-    add_custom_target(tests ${CMAKE_CTEST_COMMAND} -V)
-else()
-    message("GTest not available: Tests were not enabled!")
-endif()
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/refs/heads/main.zip
+)
+
+FetchContent_MakeAvailable(googletest)
+enable_testing()
+add_custom_target(tests ${CMAKE_CTEST_COMMAND} -V)
 
 # Valgrind
 find_program(VALGRIND "valgrind")
