@@ -8,11 +8,19 @@
 
 #include <core/logger/event_logger.h>
 #include <core/util/TimeTracker.hpp>
+#include <core/util/EnumCast.hpp>
 
 #include "Producer.hpp"
 
 namespace component
 {
+	namespace {
+		const core::util::EnumCast<uint32_t> timeUnitFactorMap =
+				core::util::EnumCast<uint32_t>
+				(1000, "seconds")
+				(1, "milliseconds");
+	}
+
 	Producer Producer::_prototype;
 
 	Producer::Producer() :
@@ -51,23 +59,7 @@ namespace component
 		std::string timeUnit = component.second.get<std::string>("unit", "milliseconds");
 		std::string msgId = component.second.get<std::string>("msg_id", "");
 
-
-		if (timeUnit == "seconds")
-		{
-			timePeriod *= 1000;
-		}
-		else
-		{
-			if (timeUnit != "milliseconds")
-			{
-				LOG_ERROR(
-						"dbg",
-						"Invalid time unit configured: [%s] interpreting as ms",
-						timeUnit);
-			}
-		}
-
-		m_duration_ms = timePeriod;
+		m_duration_ms = timePeriod * timeUnitFactorMap(timeUnit);
 		m_published_message = msgId;
 	}
 
