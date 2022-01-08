@@ -11,11 +11,14 @@
  */
 
 #include <chrono>
+#include <iostream>
+#include <filesystem>
 #include <execinfo.h>
 #include <list>
 #include <signal.h>
 #include <thread>
 
+#include <boost/program_options.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
 #include <core/logger/event_logger.h>
@@ -23,6 +26,7 @@
 #include <core/Component.hpp>
 
 namespace {
+    const char * APP_NAME = "Breadcrumbs";
     const char * CONFIG_FILE = "config.json";
 }
 
@@ -42,12 +46,42 @@ int main(int argc, char* arcv[])
 {
     signal(SIGSEGV, handler);
 
+    std::string configFile;
+    try
+    {
+        boost::program_options::options_description options{APP_NAME};
+        options.add_options()("help,h", "Help")("file,f", boost::program_options::value<std::string>()->default_value(CONFIG_FILE));
+
+        boost::program_options::variables_map vm;
+        boost::program_options::store(boost::program_options::parse_command_line(argc, arcv, options), vm);
+        boost::program_options::notify(vm);
+
+        if (vm.count("help"))
+        {
+            options.print(std::cout);
+            return 0;
+        }
+
+        configFile = vm["file"].as<std::string>();
+
+        if (not std::filesystem::exists(configFile))
+        {
+            std::cerr << "Config file[" << configFile << "] does not exist!" << std::endl;
+            return -1;
+        }
+    }
+    catch (const boost::program_options::error &e)
+    {
+        std::cerr << e.what() << std::endl;
+        return -1;
+    }
+
     // List of components
     std::list<core::Component*> componentList;
 
     // Read config file
     boost::property_tree::ptree root;
-    boost::property_tree::read_json(CONFIG_FILE, root);
+    boost::property_tree::read_json(configFile, root);
 
     // Initialise the logger
     logger_init(CONFIG_FILE);
