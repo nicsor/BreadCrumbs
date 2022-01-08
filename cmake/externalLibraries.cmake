@@ -16,6 +16,9 @@ else()
   link_directories(${Boost_LIBRARY_DIRS})
 endif (NOT Boost_FOUND)
 
+# Supress boost header warnings
+add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS)
+
 #Pkg-config
 find_package(PkgConfig REQUIRED)
 

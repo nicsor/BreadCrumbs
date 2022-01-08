@@ -29,7 +29,7 @@ namespace util
             // Construction
             public:
                 ErrorLogger(boost::property_tree::ptree::value_type &params);
-                ~ErrorLogger();
+                virtual ~ErrorLogger();
 
             // Methods
             public:

@@ -27,7 +27,7 @@ namespace util
                 // Construction
             public :
                 DetachedLogger();
-                ~DetachedLogger();
+                virtual ~DetachedLogger();
                 void log_event(const LogEntryCPtr& param);
             protected:
 

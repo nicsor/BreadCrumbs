@@ -33,7 +33,7 @@ namespace component
 		virtual ~Producer();
 
 		// Methods
-		Producer* clone();
+		Producer* clone() const;
 		void init(const boost::property_tree::ptree::value_type& component);
 		void start();
 		void stop();

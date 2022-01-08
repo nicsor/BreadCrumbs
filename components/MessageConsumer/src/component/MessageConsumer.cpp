@@ -30,7 +30,7 @@ namespace component
 			msg.get<uint32_t>("count"));
 	}
 
-	MessageConsumer* MessageConsumer::clone()
+	MessageConsumer* MessageConsumer::clone() const
 	{
 		LOG_DEBUG("dbg", "MessageConsumer: cloning consumer");
 		return new MessageConsumer(*this);

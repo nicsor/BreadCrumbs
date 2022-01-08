@@ -44,7 +44,7 @@ namespace component
 		stop();
 	}
 
-	Producer* Producer::clone()
+	Producer* Producer::clone() const
 	{
 		LOG_DEBUG("dbg", "Producer: cloning producer");
 		return new Producer(*this);

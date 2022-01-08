@@ -27,7 +27,7 @@ namespace util
              *  @param[in] config Logger configuration details
              */
             FileLogger(const boost::property_tree::ptree::value_type &config);
-            ~FileLogger();
+            virtual ~FileLogger();
 
             // Methods
         public:

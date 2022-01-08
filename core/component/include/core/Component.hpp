@@ -71,7 +71,7 @@ namespace core
 			static Component* makeComponent(const boost::property_tree::ptree::value_type& component);
 
 			/** Method to implement specific steps for cloning a component */
-			virtual Component* clone() = 0;
+			virtual Component* clone() const = 0;
 
 			/**
 			 * Method to implement specific steps for initializing a component

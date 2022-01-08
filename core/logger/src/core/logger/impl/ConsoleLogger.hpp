@@ -21,7 +21,7 @@ namespace util
         class ConsoleLogger: public Logger {
             public :
             void log_event(const util::logger::LogEntryCPtr& param);
-            ~ConsoleLogger();
+            virtual ~ConsoleLogger();
         };
     }
 }
