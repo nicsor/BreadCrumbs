@@ -30,21 +30,24 @@ namespace component
 			msg.get<uint32_t>("count"));
 	}
 
-	MessageConsumer* MessageConsumer::clone(const boost::property_tree::ptree::value_type& component)
+	MessageConsumer* MessageConsumer::clone()
 	{
 		LOG_DEBUG("dbg", "MessageConsumer: cloning consumer");
+		return new MessageConsumer(*this);
+	}
+
+	void MessageConsumer::init(const boost::property_tree::ptree::value_type& component)
+	{
+		LOG_DEBUG("dbg", "MessageConsumer: initializing consumer");
 
 		// Clone
-		MessageConsumer* clone = new MessageConsumer(*this);
-		clone->m_published_message = component.second.get<std::string>("msg_id", "");
+		m_published_message = component.second.get<std::string>("msg_id", "");
 
 		if (not m_published_message.empty())
 		{
 			LOG_DEBUG("dbg", "MessageConsumer: subscribed to message-id: %s", m_published_message.c_str());
-			clone->subscribe(m_published_message, std::bind(&MessageConsumer::handler, clone, std::placeholders::_1));
+			subscribe(m_published_message, std::bind(&MessageConsumer::handler, this, std::placeholders::_1));
 		}
-
-		return clone;
 	}
 
 	MessageConsumer::~MessageConsumer()

@@ -52,11 +52,14 @@ int main(int argc, char* arcv[])
     // Initialise the logger
     logger_init(CONFIG_FILE);
 
-    // Clone all components
+    // Clone all components and initialize them
     for (const boost::property_tree::ptree::value_type&
         component : root.get_child("components"))
     {
-        componentList.push_back(core::Component::makeComponent(component));
+        core::Component *comp = core::Component::makeComponent(component);
+
+        componentList.push_back(comp);
+        comp->init(component);
     }
 
     // Signal that all components have been initialized

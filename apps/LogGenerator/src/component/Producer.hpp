@@ -33,18 +33,9 @@ namespace component
 		virtual ~Producer();
 
 		// Methods
-
-		/**
-		 * Clone
-		 *
-		 *   @param[in] component parameters of the object
-		 */
-		Producer* clone(const boost::property_tree::ptree::value_type& component);
-
-		/** Starts a new thread */
+		Producer* clone();
+		void init(const boost::property_tree::ptree::value_type& component);
 		void start();
-
-		/** Stops the loop */
 		void stop();
 
 	protected:

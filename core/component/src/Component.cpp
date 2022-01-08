@@ -86,7 +86,7 @@ namespace core
 			return nullptr;
 		}
 
-		return temp->clone(component);
+		return temp->clone();
 
 	}
 

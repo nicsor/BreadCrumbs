@@ -36,17 +36,21 @@ namespace component
 		stop();
 	}
 
-	Producer* Producer::clone(const boost::property_tree::ptree::value_type& component)
+	Producer* Producer::clone()
+	{
+		LOG_DEBUG("dbg", "Producer: cloning producer");
+		return new Producer(*this);
+	}
+
+	void Producer::init(const boost::property_tree::ptree::value_type& component)
 	{
 		auto track = core::util::TimeTracker(__PRETTY_FUNCTION__);
-		LOG_DEBUG("dbg", "Producer: cloning producer");
+		LOG_DEBUG("dbg", "Producer: initializing producer");
 		// Local variables
 		uint32_t timePeriod = component.second.get<uint32_t>("period", 0);
 		std::string timeUnit = component.second.get<std::string>("unit", "milliseconds");
 		std::string msgId = component.second.get<std::string>("msg_id", "");
 
-		// Clone
-		Producer* clone = new Producer(*this);
 
 		if (timeUnit == "seconds")
 		{
@@ -63,10 +67,8 @@ namespace component
 			}
 		}
 
-		clone->m_duration_ms = timePeriod;
-		clone->m_published_message = msgId;
-
-		return clone;
+		m_duration_ms = timePeriod;
+		m_published_message = msgId;
 	}
 
 	void Producer::handler(const boost::system::error_code &e)

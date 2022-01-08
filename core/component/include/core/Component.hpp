@@ -70,12 +70,15 @@ namespace core
 			 */
 			static Component* makeComponent(const boost::property_tree::ptree::value_type& component);
 
+			/** Method to implement specific steps for cloning a component */
+			virtual Component* clone() = 0;
+
 			/**
-			 * Method to implement specific steps for cloning a component
+			 * Method to implement specific steps for initializing a component
 			 *
 			 *  @param[in] component parameters of the object
 			 */
-			virtual Component* clone(const boost::property_tree::ptree::value_type& component) = 0;
+			virtual void init(const boost::property_tree::ptree::value_type& component) = 0;
 
 			/** Method to signal that all components have been initialized */
 			virtual void start();

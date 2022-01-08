@@ -25,7 +25,8 @@ namespace component
         public :
             ~MessageConsumer();
             // Methods
-            MessageConsumer* clone(const boost::property_tree::ptree::value_type& component);
+            MessageConsumer* clone();
+            void init(const boost::property_tree::ptree::value_type& component);
             void start();
             void stop();
         protected:
