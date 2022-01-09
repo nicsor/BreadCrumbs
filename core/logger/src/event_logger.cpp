@@ -64,9 +64,7 @@ static util::logger::LoggerPtr get_logger(
             logger = std::make_shared<util::logger::ErrorLogger>(child_tree);
             break;
         case LoggerType::LOGGER_TYPE_DETACHED:
-            std::cout<< "generating instance \n";
             logger = std::make_shared<util::logger::DetachedLogger>();
-            std::cout<< "generating instance done \n";
             break;
         case LoggerType::LOGGER_TYPE_CONSOLE:
             logger = std::make_shared<util::logger::ConsoleLogger>();

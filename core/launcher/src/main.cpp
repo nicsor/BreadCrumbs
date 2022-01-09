@@ -84,7 +84,7 @@ int main(int argc, char* arcv[])
     boost::property_tree::read_json(configFile, root);
 
     // Initialise the logger
-    logger_init(CONFIG_FILE);
+    logger_init(configFile.c_str());
 
     // Clone all components and initialize them
     for (const boost::property_tree::ptree::value_type&

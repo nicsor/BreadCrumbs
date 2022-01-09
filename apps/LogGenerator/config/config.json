@@ -1,37 +1,9 @@
-{       "logging": {
-		"level":  "debug",
-		"filters" : [
-			"dbg"
-		],
+{
+	"logging": {
+		"level":  "info",
 		"consumers": [
 			{
-				"name": "file",
-				"file": {
-					"path": "logs",
-					"prefix": "App_",
-					"suffix": ".log"
-				},
-				"max": {
-					"file_size": 1024,
-					"files": 3
-				}
-			},
-			{
-				"name": "error",
-				"file": {
-					"path": "logs",
-					"prefix": "App_",
-					"suffix": ".log"
-				},
-				"max": {
-					"entries": 100
-				}
-			},
-			{
 				"name": "console"
-			},
-			{
-				"name": "detached"
 			}
 		]
 	},
