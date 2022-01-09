@@ -16,6 +16,7 @@ extern "C" {
 
 #include <stdarg.h>
 #include <stdint.h>
+#include <string.h> 
 
 /** The supported log levels */
 enum LogLevel {

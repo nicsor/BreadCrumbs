@@ -12,12 +12,21 @@ namespace core
 {   
     namespace util
     {
-        std::map<const std::string, std::any>::iterator Attributes::begin() noexcept
+        std::map<const std::string, std::any>::const_iterator Attributes::begin() const noexcept
         {
             return m_attributes.begin();
         }
 
-        std::map<const std::string, std::any>::iterator Attributes::end() noexcept
+        std::map<const std::string, std::any>::const_iterator Attributes::end() const noexcept
+        {
+            return m_attributes.end();
+        }
+        std::map<const std::string, std::any>::const_iterator Attributes::cbegin() const noexcept
+        {
+            return m_attributes.begin();
+        }
+
+        std::map<const std::string, std::any>::const_iterator Attributes::cend() const noexcept
         {
             return m_attributes.end();
         }

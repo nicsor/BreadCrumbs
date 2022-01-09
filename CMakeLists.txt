@@ -15,7 +15,7 @@ include(externalLibraries)
 
 # Internal components
 #---------------------------------------
-set(BUILD_PATHS "core" "components" "apps" "samples")
+set(BUILD_PATHS "core" "components" "networking" "apps" "samples")
 foreach(path ${BUILD_PATHS})
     file(GLOB children RELATIVE ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/${path}/*)
 

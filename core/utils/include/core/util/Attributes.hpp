@@ -116,10 +116,12 @@ namespace core
             }
 
             /** @return iterator pointing to the first element in the sequence */
-            std::map<const std::string, std::any>::iterator begin() noexcept;
+            std::map<const std::string, std::any>::const_iterator begin() const noexcept;
+            std::map<const std::string, std::any>::const_iterator cbegin() const noexcept;
 
             /** @return iterator pointing to the past-the-end element in the sequence */
-            std::map<const std::string, std::any>::iterator end() noexcept;
+            std::map<const std::string, std::any>::const_iterator end() const noexcept;
+            std::map<const std::string, std::any>::const_iterator cend() const noexcept;
 
             /** @return number of attributes */
             size_t count();

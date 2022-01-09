@@ -1,0 +1,31 @@
+{
+	"logging": {
+		"level": "info",
+		"consumers": [
+			{
+				"name": "console"
+			}
+		]
+	},
+	"components": {
+		"Server": {
+			"multicast": {
+				"port": 5000,
+				"group": "239.255.0.1"
+			},
+			"server": {
+				"max": {
+					"rx-size-kb": 16
+				},
+				"tcp": {
+					"address": "0.0.0.0",
+					"port": 3000
+				}
+			}
+		},
+		"NetworkTestApp": {
+			"run-as": "server",
+			"update-period-ms": 5000
+		}
+	}
+}

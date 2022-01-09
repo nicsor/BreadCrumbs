@@ -27,7 +27,7 @@ namespace util
                    % param->get_filename()
                    % param->get_line();
 
-            std::cout << logMsg.str();
+            std::cout << param->get_message() << " " << param->get_filename() << ":" << param->get_line()<< std::endl;
         }
 
         ConsoleLogger::~ConsoleLogger()

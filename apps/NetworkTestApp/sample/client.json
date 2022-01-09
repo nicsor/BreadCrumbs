@@ -1,0 +1,33 @@
+{
+	"logging": {
+		"level": "info",
+		"consumers": [
+			{
+				"name": "console"
+			}
+		]
+	},
+	"components": {
+		"Client": {
+			"multicast": {
+				"port": 5000,
+				"group": "239.255.0.1"
+			},
+			"server": {
+				"max": {
+					"rx-size-kb": 16,
+					"count": 1,
+					"timeout-ms": 5000
+				},
+				"tcp": {
+					"port": 3000
+				}
+			}
+		},
+		"NetworkTestApp": {
+			"run-as": "client",
+			"update-period-ms": 1000,
+			"refresh-server-list-ms": 7500
+		}
+	}
+}
