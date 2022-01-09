@@ -4,7 +4,7 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
 # regex system filesystem program_options date_time thread
-find_package(Boost REQUIRED COMPONENTS program_options)
+find_package(Boost REQUIRED COMPONENTS program_options serialization)
 
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "Boost not found")

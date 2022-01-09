@@ -1,0 +1,23 @@
+{       "logging": {
+                "level":  "debug",
+                "consumers": [
+                        {
+                                "name": "console"
+                        }
+                ]
+        },
+	"components": {
+		"cube3D": {
+		        "screen": 
+                                {
+                                        "full": false
+                                }
+                },
+		"snowFlake": {
+                        "update-rate-ms": 150,
+                        "snow-rate-percent": 25,
+                        "cube-size": 10
+                }
+	}
+
+}

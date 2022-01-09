@@ -14,8 +14,8 @@ RUN apt-get install -y libssl-dev wget && ${CLEANUP}
 
 RUN apt-get install -y libboost-all-dev pkg-config libgtest-dev libpthread-stubs0-dev && ${CLEANUP}
 
-# Built gtest_main
-RUN cd /usr/src/gtest/ && cmake -DBUILD_SHARED_LIBS=ON && make && cp *.so /usr/lib && ${CLEANUP}
+# OpenGL dependencies
+RUN apt-get install -y freeglut3-dev libglfw3-dev && ${CLEANUP}
 
 # Setting the command to launch
 CMD ["bash", "-l"]
