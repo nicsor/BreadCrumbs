@@ -13,7 +13,7 @@
                                         "full": false
                                 }
                 },
-		"snowFlake": {
+		"ledTest": {
                         "update-rate-ms": 150,
                         "snow-rate-percent": 25,
                         "cube-size": 10
