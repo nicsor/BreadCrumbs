@@ -318,7 +318,8 @@ namespace networking
             m_serverSocket.reset();
         }
 
-        if (m_recvData.joinable())
+        if (m_recvData.joinable() and
+            std::this_thread::get_id() != m_recvData.get_id())
         {
             m_recvData.join();
         }
