@@ -1,0 +1,26 @@
+{
+        "logging": {
+                "level":  "debug",
+                "consumers": [
+                        {
+                                "name": "console"
+                        }
+                ]
+        },
+        "components": {
+                "cubeManager": {
+                        "pins": {
+                                "A0": 4,
+                                "A1": 27,
+                                "A2": 22,
+                                "DatA": 23,
+                                "DatB": 24,
+                                "OE": 25,
+                                "CLK": 5,
+                                "ST": 26
+                        },
+                        "cycle-period-ms": 5,
+                        "enable-gpios": true
+                }
+        }
+}
