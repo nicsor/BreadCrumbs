@@ -103,4 +103,6 @@ namespace util
     }
 }
 
+BOOST_CLASS_VERSION(util::network::Message, 1);
+
 #endif /* _UTIL_NETWORK_MESSAGE_H_ */
