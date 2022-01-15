@@ -11,10 +11,12 @@
  */
 
 #include <chrono>
+#include <condition_variable>
 #include <iostream>
 #include <filesystem>
 #include <execinfo.h>
 #include <list>
+#include <mutex>
 #include <signal.h>
 #include <thread>
 
@@ -28,8 +30,11 @@
 namespace {
     const char * APP_NAME = "Breadcrumbs";
     const char * CONFIG_FILE = "config.json";
-}
 
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool shouldExit = false;
+}
 
 void handler(int sig) {
     void *array[32];
@@ -42,9 +47,19 @@ void handler(int sig) {
     exit(1);
 }
 
+void closeApp(int sig) {
+    shouldExit = true;
+
+    LOG_INFO(APP_NAME, "Recived exit request. Gracefully shutting down ...");
+
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.notify_one();
+}
+
 int main(int argc, char* arcv[])
 {
     signal(SIGSEGV, handler);
+    signal(SIGINT, closeApp);
 
     std::string configFile;
     try
@@ -102,8 +117,8 @@ int main(int argc, char* arcv[])
         component->start();
     }
 
-    // Sleep for 10 seconds
-    std::this_thread::sleep_for(std::chrono::seconds{60});
+    std::unique_lock<std::mutex> lock(mtx);
+    cv.wait(lock, []{ return shouldExit; });
 
     // Signal that all components that we are stopping
     for (core::Component* component : componentList)
@@ -114,7 +129,7 @@ int main(int argc, char* arcv[])
 
     componentList.clear();
 
-    LOG_INFO("dbg", "Timing statistics:\n%s",  core::util::getTimingStatistics().c_str());
+    LOG_INFO(APP_NAME, "Timing statistics:\n%s",  core::util::getTimingStatistics().c_str());
 
     // Uninitialise the logger
     logger_deinit();
