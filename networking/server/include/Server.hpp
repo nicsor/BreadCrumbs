@@ -15,7 +15,7 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
-#include <vector>
+#include <set>
 #include <string>
 
 #include <boost/asio.hpp>
@@ -45,8 +45,7 @@ namespace networking
         void startListeningTcp();
 
         void advertise();
-        void receiveData(std::shared_ptr<boost::asio::ip::tcp::socket> sock, size_t bytes = 0, void *buf = nullptr);
-        void disconnect(std::shared_ptr<boost::asio::ip::tcp::socket> sock);
+        void receiveData(std::shared_ptr<boost::asio::ip::tcp::socket> sock);
 
     private:
         static Server _prototype;
@@ -66,8 +65,9 @@ namespace networking
         std::shared_ptr<boost::asio::io_context> m_ioContext;
         std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> m_workGuard;
 
-        std::vector<std::shared_ptr<boost::asio::ip::tcp::socket>> m_connectedClients;
+        std::set<std::shared_ptr<boost::asio::ip::tcp::socket>> m_connectedClients;
         std::shared_ptr<std::mutex> m_clientsMutex;
+        std::vector<std::thread> m_runners;
         bool m_isActive;
 
         boost::asio::ip::udp::endpoint multicast_client_endpoint;

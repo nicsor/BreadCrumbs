@@ -69,8 +69,7 @@ namespace networking
 
         m_workGuard = std::make_unique<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>>(
             m_ioContext->get_executor());
-        m_broadcastThread = std::thread([this]
-                                        { this->m_ioContext->run(); });
+        m_broadcastThread = std::thread([this]{ this->m_ioContext->run(); });
 
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
@@ -78,47 +77,84 @@ namespace networking
     void Server::stop()
     {
         LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
+
         m_isActive = false;
         m_acceptor->close();
         m_workGuard.reset();
 
+        if (m_multicastSocket->is_open())
+        {
+            LOG_DEBUG(DOMAIN, "Closing advertising socket");
+            boost::system::error_code error;
+            m_multicastSocket->shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+            m_multicastSocket->close();
+        }
+
         if (m_broadcastThread.joinable())
         {
+            LOG_DEBUG(DOMAIN, "Joining broadcast thread");
             m_broadcastThread.join();
         }
 
         if (m_advertisingThread.joinable())
         {
+            LOG_DEBUG(DOMAIN, "Joining advertising thread");
             m_advertisingThread.join();
         }
+
+        // Disconnecting any clients
+        {
+            LOG_DEBUG(DOMAIN, "Closing sockets");
+            std::scoped_lock<std::mutex> lock(*m_clientsMutex);
+
+            for (auto &sock : m_connectedClients)
+            {
+                if (sock->is_open())
+                {
+                    boost::system::error_code error;
+                    sock->shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+                    sock->close();
+                }
+            }
+
+            m_connectedClients.clear();
+        }
+
+        LOG_DEBUG(DOMAIN, "Joining all client threads");
+        for (auto &runner: m_runners)
+        {
+            if (runner.joinable())
+            {
+                runner.join();
+            }
+        }
+
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
 
     void Server::sendBroadcast(const core::MessageData &attrs)
     {
         LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
-        try
+
+        util::network::Message message(attrs.get<std::string>("id"), attrs.get<std::string>("data"));
+        std::shared_ptr<std::string> buf = std::make_shared<std::string>(message.toString());
+
+        std::scoped_lock<std::mutex> lock(*m_clientsMutex);
+
+        for (auto sock : m_connectedClients)
         {
-            util::network::Message message(attrs.get<std::string>("id"), attrs.get<std::string>("data"));
-            std::shared_ptr<std::string> buf = std::make_shared<std::string>(message.toString());
-            for (auto sock : m_connectedClients)
+            if (sock->is_open())
             {
-                if (sock->is_open())
+                auto broadcast_handler = [this, sock, buf](const boost::system::error_code &ec, size_t bytes_sent)
                 {
-                    auto broadcast_handler = [this, sock, buf](const boost::system::error_code &ec, size_t bytes_sent)
+                    if (ec)
                     {
-                        if (ec)
-                        {
-                            LOG_ERROR(DOMAIN, "Error on broadcast.");
-                        }
-                    };
-                    sock->async_send(boost::asio::buffer(*buf), broadcast_handler);
-                }
+                        std::string clientIp = sock.get()->remote_endpoint().address().to_string().c_str();
+                        LOG_ERROR(DOMAIN, "Error[%c] while broadcasting message to %s", clientIp.c_str());
+                    }
+                };
+                sock->async_send(boost::asio::buffer(*buf), broadcast_handler);
             }
-        }
-        catch (std::exception &e)
-        {
-            LOG_ERROR(DOMAIN, "Error on broadcast: %s", e.what());
         }
 
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
@@ -127,6 +163,7 @@ namespace networking
     void Server::startAdvertising()
     {
         LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
+
         boost::asio::io_context io;
         m_multicastSocket = std::make_shared<boost::asio::ip::udp::socket>(io);
         boost::asio::ip::udp::endpoint multicastEndpoint = boost::asio::ip::udp::endpoint(
@@ -139,6 +176,7 @@ namespace networking
             boost::asio::ip::multicast::join_group(boost::asio::ip::make_address(m_multicastAddress)));
         advertise();
         io.run();
+
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
 
@@ -154,6 +192,9 @@ namespace networking
             {
                 if (not ec)
                 {
+                    // Continue to advertise for other potential clients.
+                    advertise();
+
                     LOG_DEBUG(DOMAIN, "Received[%s] request from %s.",
                               (*buf).c_str(),
                               multicast_client_endpoint.address().to_string().c_str());
@@ -161,64 +202,88 @@ namespace networking
                     if ((*buf).find("ping") == 0)
                     {
                         const char *message = "pong";
-                        m_multicastSocket->async_send_to(
-                            boost::asio::buffer(message, sizeof(message)),
-                            this->multicast_client_endpoint, [](const boost::system::error_code, size_t len) {});
-                    }
+                        boost::system::error_code error;
+                        uint32_t sendBytes = m_multicastSocket->send_to(
+                            boost::asio::buffer(message, strlen(message)),
+                            this->multicast_client_endpoint,
+                            boost::asio::socket_base::message_flags(0),
+                            error);
 
-                    // Continue to advertise for other potential clients.
-                    advertise();
+                        if (error)
+                        {
+                            LOG_ERROR(DOMAIN, "Error code[%d] while sending [%s]",
+                                error,
+                                message);
+                        }
+                        else
+                        {
+                            LOG_DEBUG(DOMAIN, "Sent back [%s] to [%s].",
+                                message,
+                                multicast_client_endpoint.address().to_string().c_str());
+                        }
+                    }
                 }
                 else
                 {
-                    LOG_ERROR(DOMAIN, "Error on advertise. Stopping ...");
+                    if (m_isActive)
+                    {
+                        LOG_ERROR(DOMAIN, "Error detected while advertising");
+                    }
+                    else
+                    {
+                        LOG_INFO(DOMAIN, "Stopped advertising");
+                    }
                 }
             });
+
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
 
     void Server::startListeningTcp()
     {
         LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
+
         if (m_isActive)
         {
             std::shared_ptr<boost::asio::ip::tcp::socket> sock = std::make_shared<boost::asio::ip::tcp::socket>(*m_ioContext);
-            {
-                std::scoped_lock<std::mutex> lock(*m_clientsMutex);
-                m_connectedClients.push_back(sock);
-            }
+
             m_acceptor->async_accept(
                 *sock,
                 [this, sock](const boost::system::error_code &ec)
                 {
-                    LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
                     if (ec or not m_isActive)
                     {
-                        LOG_ERROR(DOMAIN, "Error accepting data socket: %d \"%s\"", ec.value(), ec.message());
+                        LOG_ERROR(DOMAIN, "Error[%d] while accepting data socket: [%s]",
+                            ec.value(),
+                            ec.message().c_str());
                     }
                     else
                     {
                         startListeningTcp();
+
                         sock->set_option(boost::asio::ip::tcp::no_delay(true));
-                        LOG_DEBUG(DOMAIN, "Accepting data socket %p", sock.get());
-                        try
-                        {
-                            receiveData(sock);
-                        }
-                        catch (...)
-                        {
-                        }
-                        disconnect(sock);
+                        m_runners.push_back(std::move(std::thread([this, sock]{ receiveData(sock);})));
                     }
                 }
             );
         }
+
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
 
-    void Server::receiveData(std::shared_ptr<boost::asio::ip::tcp::socket> sock, size_t bytes, void *buf)
+    void Server::receiveData(std::shared_ptr<boost::asio::ip::tcp::socket> sock)
     {
         LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
+
+        std::string clientIp = sock.get()->remote_endpoint().address().to_string().c_str();
+
+        // Keep a reference to this socket
+        {
+            std::scoped_lock<std::mutex> lock(*m_clientsMutex);
+            LOG_INFO(DOMAIN, "Client[%s]: connected", clientIp.c_str());
+            m_connectedClients.insert(sock);
+        }
+
         std::string data;
         data.resize(m_serverMaxRxMsgSizeKb * 1024);
 
@@ -226,43 +291,68 @@ namespace networking
 
         while (sock->is_open() && m_isActive)
         {
-            size_t readSize = sock->read_some(buffer);
-            LOG_DEBUG(DOMAIN, "Read %d bytes", readSize);
+            boost::system::error_code error;
+            size_t readSize = sock->read_some(buffer, error);
+
+            if (readSize != 0)
+            {
+                LOG_DEBUG(DOMAIN, "Client[%s]: Received %d bytes", clientIp.c_str(), readSize);
+            }
+            else if (error == boost::asio::error::eof)
+            {
+                continue;
+            }
+            else
+            {
+                LOG_ERROR(DOMAIN, "Client[%s]: Error on read: [%d]", clientIp.c_str(), error);
+                break;
+            }
 
             util::network::Message message;
-            message.fromString(std::string(&data[0], readSize));
+            try
+            {
+                message.fromString(std::string(&data[0], readSize));
+            }
+            catch (std::exception e)
+            {
+                LOG_ERROR(DOMAIN, "Client[%s]: Unable to deserialize message received. Disconnecting[%s]",
+                    clientIp.c_str(),
+                    e.what());
+                break;
+            }
 
             if (not message.isValid())
             {
-                LOG_ERROR(DOMAIN, "Invalid message received. Closing connection.");
-                return;
+                LOG_ERROR(DOMAIN, "Client[%s]: Invalid message received. Closing connection.",
+                    clientIp.c_str());
+                break;
             }
 
             {
                 core::MessageData attrs;
                 attrs.set<std::string>("id", message.getId());
                 attrs.set<std::string>("data", message.getData());
-                LOG_DEBUG(DOMAIN, "Id[%s] Data[%s]", message.getId().c_str(), message.getData().c_str());
+                LOG_DEBUG(DOMAIN, "Client[%s]: Received message with id [%s]",
+                    clientIp.c_str(),
+                    message.getId().c_str());
                 post("NETWORK_DATA", attrs);
             }
         }
 
-        LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
+        // Remove the reference to this connection
+        {
+            LOG_INFO(DOMAIN, "Client[%s]: Disconecting", clientIp.c_str());
+            std::scoped_lock<std::mutex> lock(*m_clientsMutex);
+            m_connectedClients.erase(sock);
 
-        disconnect(sock);
-        LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
-    }
+            if (sock->is_open())
+            {
+                boost::system::error_code error;
+                sock->shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+                sock->close();
+            }
+        }
 
-    void Server::disconnect(std::shared_ptr<boost::asio::ip::tcp::socket> sock)
-    {
-        LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
-        std::scoped_lock lock(*(this->m_clientsMutex));
-        this->m_connectedClients.erase(
-            std::remove(
-                this->m_connectedClients.begin(),
-                this->m_connectedClients.end(),
-                sock),
-            this->m_connectedClients.end());
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
 }
