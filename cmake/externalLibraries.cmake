@@ -3,8 +3,9 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
-# regex system filesystem program_options date_time thread
-find_package(Boost REQUIRED COMPONENTS program_options serialization)
+# Setting to version 1.75 in order to be in tune with the version found 
+# on hardknott for serialization. Slightly lower version might work, as well.
+find_package(Boost 1.75 REQUIRED COMPONENTS program_options serialization)
 
 if (NOT Boost_FOUND)
   message(FATAL_ERROR "Boost not found")
