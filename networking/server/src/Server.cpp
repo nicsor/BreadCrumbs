@@ -159,8 +159,9 @@ namespace networking
                 {
                     if (ec)
                     {
-                        std::string clientIp = sock.get()->remote_endpoint().address().to_string().c_str();
-                        LOG_ERROR(DOMAIN, "Error[%c] while broadcasting message to %s", clientIp.c_str());
+                        //std::string clientIp = sock.get()->remote_endpoint().address().to_string().c_str();
+                        //LOG_ERROR(DOMAIN, "Error[%c] while broadcasting message to %s", clientIp.c_str());
+                        LOG_ERROR(DOMAIN, "Error while broadcasting message to %p", sock.get());
                     }
                 };
                 sock->async_send(boost::asio::buffer(*buf), broadcast_handler);
@@ -290,7 +291,7 @@ namespace networking
         // Keep a reference to this socket
         {
             std::scoped_lock<std::mutex> lock(*m_clientsMutex);
-            LOG_INFO(DOMAIN, "Client[%s]: connected", clientIp.c_str());
+            LOG_INFO(DOMAIN, "Client[%s]: connected - %p", clientIp.c_str(), sock.get());
             m_connectedClients.insert(sock);
         }
 
