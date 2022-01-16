@@ -19,4 +19,6 @@ target_include_directories(${COMPONENT_NAME} PRIVATE src)
 target_include_directories(${COMPONENT_NAME} PUBLIC  include)
 
 install(TARGETS ${COMPONENT_NAME} DESTINATION bin)
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sample/config.json DESTINATION /etc/CubeManager)
+
+# Install the file in the same directory as the app
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/sample/config.json DESTINATION bin)
