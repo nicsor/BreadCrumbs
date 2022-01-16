@@ -13,7 +13,8 @@ add_executable(${COMPONENT_NAME} ${COMPONENT_SRCS})
 
 # Target dependencies
 # As the message consumer is not connected directly to the app, we must force the linkage.
-target_link_libraries(${COMPONENT_NAME} PRIVATE -Wl,--whole-archive server patterns common -Wl,--no-whole-archive launcher)
+# target_link_libraries(${COMPONENT_NAME} PRIVATE -Wl,--whole-archive client server cube3d cubeManager NetworkTestApp patterns -Wl,--no-whole-archive launcher)
+target_link_libraries(${COMPONENT_NAME} PRIVATE launcher)
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC gpiod)
 target_include_directories(${COMPONENT_NAME} PRIVATE src)
 target_include_directories(${COMPONENT_NAME} PUBLIC  include)

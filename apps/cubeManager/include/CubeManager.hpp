@@ -31,13 +31,16 @@ public:
 
 protected:
     void periodicUpdate(const boost::system::error_code &e);
+    void publishState(const boost::system::error_code &e);
     void updateCube(const core::MessageData &attrs);
+    void updateLed(const core::MessageData &attrs);
 
 private:
     static CubeManager _prototype;
 
     std::shared_ptr<CubeControllerItf> m_controllerPtr;
-    core::TimerId m_timerId;
+    core::TimerId m_timerCycleId;
+    core::TimerId m_timerStateId;
 
     CubeData m_cubeData;
     uint8_t m_numLayers;

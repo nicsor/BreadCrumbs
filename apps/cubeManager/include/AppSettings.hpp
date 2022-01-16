@@ -26,6 +26,7 @@ private:
     AppSettings() :
         pins{0},
         cyclePeriodMs(5),
+        statePublishPeriodMs(0),
         enableController(true)
     {        
     }
@@ -36,6 +37,7 @@ public:
 public:
     CubePinout pins;
     uint32_t cyclePeriodMs;
+    uint32_t statePublishPeriodMs;
     bool enableController;
 
 private:

@@ -45,7 +45,43 @@ const uint8_t* CubeData::getLayerData(uint8_t layer)
     return reinterpret_cast<uint8_t*>(&m_data[offset]);
 }
 
-void CubeData::updateContent(util::math::Cube<util::graphics::Color> data)
+util::graphics::Color CubeData::getState(uint32_t x, uint32_t y, uint32_t z)
+{
+    util::graphics::Color color;
+    color.rgb.R = m_data[getDataOffset(x, y, z, 0)];
+    color.rgb.G = m_data[getDataOffset(x, y, z, 1)];
+    color.rgb.B = m_data[getDataOffset(x, y, z, 2)];
+
+    return color;
+}
+
+void CubeData::setState(uint32_t x, uint32_t y, uint32_t z, const util::graphics::Color &color)
+{
+    m_data[getDataOffset(x, y, z, 0)] = color.rgb.R;
+    m_data[getDataOffset(x, y, z, 1)] = color.rgb.G;
+    m_data[getDataOffset(x, y, z, 2)] = color.rgb.B;
+}
+
+util::math::Cube<util::graphics::Color> CubeData::getContent()
+{
+    util::math::Cube<util::graphics::Color> cube(DIMENSION);
+
+    // do it without the loop
+    for (uint32_t i = 0; i < DIMENSION; ++i)
+    {
+        for(uint32_t j = 0; j < DIMENSION; ++j)
+        {
+            for(uint32_t l = 0; l < DIMENSION; ++l)
+            {
+                cube.set(i, j, l, getState(i, j, l));
+            }
+        }
+    }
+
+    return cube;
+}
+
+void CubeData::setContent(util::math::Cube<util::graphics::Color> &data)
 {
     if (data.size() != DIMENSION)
     {
@@ -54,15 +90,14 @@ void CubeData::updateContent(util::math::Cube<util::graphics::Color> data)
     }
 
     // Todo: redo without offset calculation
-    for (int i = 0; i < DIMENSION; ++i)
+    for (uint32_t i = 0; i < DIMENSION; ++i)
     {
-        for(uint8_t j = 0; j < DIMENSION; ++j)
+        for(uint32_t j = 0; j < DIMENSION; ++j)
         {
-            for(uint8_t l = 0; l < DIMENSION; ++l)
+            for(uint32_t l = 0; l < DIMENSION; ++l)
             {
-                m_data[getDataOffset(i, j, l, 0)] = data(i, j, l).rgb.R;
-                m_data[getDataOffset(i, j, l, 1)] = data(i, j, l).rgb.G;
-                m_data[getDataOffset(i, j, l, 2)] = data(i, j, l).rgb.B;
+                const auto &color = data(i, j, l);
+                setState(i, j, l, color);
             }
         }
     }

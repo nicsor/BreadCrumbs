@@ -10,6 +10,7 @@
 #include <iomanip>
 
 #include <core/logger/event_logger.h>
+#include <common/message/type/LedState.hpp>
 
 #include "AppSettings.hpp"
 
@@ -42,8 +43,11 @@ void CubeManager::init(const boost::property_tree::ptree::value_type &component)
         std::shared_ptr<CubeControllerItf>(new StubCubeController(params.pins));
 
     subscribe(
-        "NETWORK_DATA",
+        "updateCube",
         std::bind(&CubeManager::updateCube, this, std::placeholders::_1));
+    subscribe(
+        "updateLed",
+        std::bind(&CubeManager::updateLed, this, std::placeholders::_1));
 }
 
 void CubeManager::start()
@@ -53,14 +57,24 @@ void CubeManager::start()
 
     LOG_INFO(DOMAIN, "Starting timer for updating layers with period: [%d us]", cyclePeriodUs);
 
-    m_timerId = setPeriodicTimer(
+    m_timerCycleId = setPeriodicTimer(
         std::bind(&CubeManager::periodicUpdate, this, std::placeholders::_1),
         std::chrono::microseconds(cyclePeriodUs));
+
+    if (params.statePublishPeriodMs != 0)
+    {
+        LOG_INFO(DOMAIN, "Starting timer for publishing state: [%d us]", params.statePublishPeriodMs);
+
+        m_timerStateId = setPeriodicTimer(
+            std::bind(&CubeManager::publishState, this, std::placeholders::_1),
+            std::chrono::microseconds(cyclePeriodUs));
+    }
 }
 
 void CubeManager::stop()
 {
-    cancelTimer(m_timerId);
+    cancelTimer(m_timerCycleId);
+    cancelTimer(m_timerStateId);
     m_controllerPtr.reset();
 }
 
@@ -87,19 +101,31 @@ void CubeManager::periodicUpdate(const boost::system::error_code &e)
     m_controllerPtr->setLayerOutput(m_activeLayer, layerState);
 }
 
+void CubeManager::publishState(const boost::system::error_code &e)
+{
+    core::MessageData attrs;
+    attrs.set("data", m_cubeData.getContent().toString());
+    post("cubeState", attrs);
+}
+
 void CubeManager::updateCube(const core::MessageData &attrs)
 {
-    std::string id;
-    attrs.get("id", id);
+    std::string data;
+    attrs.get("data", data);
 
-    if (id == "updateCube")
-    {
-        std::string data;
-        attrs.get("data", data);
+    util::math::Cube<util::graphics::Color> cubeData(1);
+    cubeData.fromString(data);
 
-        util::math::Cube<util::graphics::Color> cubeData(1);
-        cubeData.fromString(data);
+    m_cubeData.setContent(cubeData);
+}
 
-        m_cubeData.updateContent(cubeData);
-    }
+void CubeManager::updateLed(const core::MessageData &attrs)
+{
+    std::string data;
+    attrs.get("data", data);
+
+    common::message::type::LedState ledState;
+    ledState.fromString(data);
+
+    m_cubeData.setState(ledState.x, ledState.y, ledState.z, ledState.color);
 }

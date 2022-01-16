@@ -20,7 +20,11 @@ public:
     CubeData();
     const uint8_t* getLayerData(uint8_t layer);
 
-    void updateContent(util::math::Cube<util::graphics::Color> data);
+    util::graphics::Color getState(uint32_t x, uint32_t y, uint32_t z);
+    void setState(uint32_t x, uint32_t y, uint32_t z, const util::graphics::Color &color);
+
+    util::math::Cube<util::graphics::Color> getContent();
+    void setContent(util::math::Cube<util::graphics::Color> &data);
 
 private:
     std::string m_data;

@@ -20,7 +20,6 @@
                                 "ST": 26
                         },
                         "cycle-period-ms": 5,
-                        "state-publish-period-ms": 1000,
                         "enable-gpios": true
                 },
 		"Server": {
