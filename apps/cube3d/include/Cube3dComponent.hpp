@@ -29,8 +29,9 @@ public:
 
 protected:
     // Subscriptions
-    void updateLedState(const core::util::Attributes &attrs);
-    void updateMatrix(const core::util::Attributes &attrs);
+    void updateLed(const core::util::Attributes &attrs);
+    void updateCube(const core::util::Attributes &attrs);
+    void publishLedState(uint32_t x, uint32_t y, uint32_t z, const util::graphics::Color &color);
 
     // Periodic tasks
     void activeItemBlink(const boost::system::error_code &e);

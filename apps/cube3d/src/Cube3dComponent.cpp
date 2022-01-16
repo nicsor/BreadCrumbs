@@ -6,6 +6,7 @@
 #include <iomanip>
 
 #include <core/logger/event_logger.h>
+#include <common/message/type/LedState.hpp>
 
 namespace
 {
@@ -44,41 +45,38 @@ void Cube3dComponent::init(const boost::property_tree::ptree::value_type& compon
     AppSettings &params = AppSettings::getInstance();
     params.configure(component.second);
 
-    subscribe("set_led_state", std::bind(&Cube3dComponent::updateLedState, this, std::placeholders::_1));
-    subscribe("set_leds", std::bind(&Cube3dComponent::updateMatrix, this, std::placeholders::_1));
+    // Register callback for color update
+    params.onColorUpdate = std::bind(
+        &Cube3dComponent::publishLedState,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3,
+        std::placeholders::_4);
+
+    subscribe("updateLed", std::bind(&Cube3dComponent::updateLed, this, std::placeholders::_1));
+    subscribe("updateCube", std::bind(&Cube3dComponent::updateCube, this, std::placeholders::_1));
+    subscribe("cubeState", std::bind(&Cube3dComponent::updateCube, this, std::placeholders::_1));
 }
 
-void Cube3dComponent::updateLedState(const core::util::Attributes &attrs)
+void Cube3dComponent::updateLed(const core::util::Attributes &attrs)
 {
-    uint8_t x, y, z;
-    uint32_t color;
+    std::string data;
+    attrs.get("data", data);
 
-    attrs.get("x", x);
-    attrs.get("y", y);
-    attrs.get("z", z);
-    attrs.get("color", color);
+    common::message::type::LedState ledState;
+    ledState.fromString(data);
 
-    LOG_DEBUG(DOMAIN,"SET_LED_STATE[%d][%d][%d] = 0x%x ", (int)x,(int)y,(int)z, color);
-
-    m_cubeData.set(x, y, z, util::graphics::Color(color));
+    m_cubeData.set(ledState.x, ledState.y, ledState.z, ledState.color);
 }
 
-void Cube3dComponent::updateMatrix(const core::util::Attributes &attrs)
+void Cube3dComponent::updateCube(const core::util::Attributes &attrs)
 {
-    uint8_t sizeX, sizeY, sizeZ;
-    std::string inputData;
-    
-    attrs.get("x", sizeX);
-    attrs.get("y", sizeY);
-    attrs.get("z", sizeZ);
-    attrs.get("inputData", inputData);
+    std::string data;
+    attrs.get("data", data);
 
-    uint32_t offset = 0;
-
-    m_cubeData.fromString(inputData);
-
-    LOG_DEBUG(DOMAIN, "SET_LEDS: size[%d][%d][%d], data-len: [%d]",
-             sizeX, sizeY, sizeZ, inputData.length());
+    util::math::Cube<util::graphics::Color> cubeData(1);
+    m_cubeData.fromString(data);
 }
 
 void Cube3dComponent::activeItemBlink(const boost::system::error_code &e)
@@ -122,6 +120,20 @@ void Cube3dComponent::activeItemBlink(const boost::system::error_code &e)
         instance.state.blinkCounter = 0;
     }
     ++instance.state.blinkCounter;
+}
+
+void Cube3dComponent::publishLedState(uint32_t x, uint32_t y, uint32_t z, const util::graphics::Color &color)
+{
+    core::MessageData attrs;
+
+    common::message::type::LedState ledState;
+    ledState.x = x;
+    ledState.y = y;
+    ledState.z = z;
+    ledState.color = color;
+
+    attrs.set("data", ledState.toString());
+    post("updateLed", attrs);
 }
 
 void Cube3dComponent::start()

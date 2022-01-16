@@ -75,8 +75,10 @@ public:
         double scalingFactor = 0.02;
         double mouseRotationRange = 50;
         double rotationFactor = 1;
-        double translationFactor = 1;        
+        double translationFactor = 1;
     } config;
+
+	std::function<void (uint32_t x, uint32_t y, uint32_t z, const util::graphics::Color& color)> onColorUpdate;
 
     void configure(const boost::property_tree::ptree& config);
 

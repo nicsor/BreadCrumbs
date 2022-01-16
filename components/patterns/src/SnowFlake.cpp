@@ -68,10 +68,7 @@ void SnowFlake::snowLeds(const boost::system::error_code &e)
 
     uint8_t cubeSize = m_cubeData.size();
 
-    core::util::Attributes attr;
-    attr.set("x", cubeSize);
-    attr.set("y", cubeSize);
-    attr.set("z", cubeSize);
+    core::MessageData attr;
 
     for (int i =0; i < cubeSize; ++i)
     {
@@ -93,7 +90,7 @@ void SnowFlake::snowLeds(const boost::system::error_code &e)
         }
     }
 
-    attr.set("inputData", m_cubeData.toString());
+    attr.set("data", m_cubeData.toString());
 
-    post("set_leds", attr);
+    post("updateCube", attr);
 }

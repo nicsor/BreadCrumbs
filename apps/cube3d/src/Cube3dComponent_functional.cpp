@@ -29,6 +29,18 @@ static uint8_t nextColor(uint8_t color, bool increase)
     return 0x55;
 }
 
+void updateColor(const AppSettings &settings)
+{
+    if (settings.onColorUpdate != nullptr)
+    {
+        settings.onColorUpdate(
+            settings.state.current.selectedLed.x,
+            settings.state.current.selectedLed.x,
+            settings.state.current.selectedLed.x,
+            settings.state.selectedColor);
+    }
+}
+
 static void mouseButtonPressCallback(GLFWwindow *window, int button, int action, int mods)
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT)
@@ -127,6 +139,7 @@ static void keyPressCallback(GLFWwindow *window, int key, int scancode, int acti
             instance.state.selectedColor.rgb.B = nextColor(
                 instance.state.selectedColor.rgb.B,
                 instance.state.moveDirection);
+            updateColor(instance);
             break;
         }
         case GLFW_KEY_G: // Update green channel
@@ -134,6 +147,7 @@ static void keyPressCallback(GLFWwindow *window, int key, int scancode, int acti
             instance.state.selectedColor.rgb.G = nextColor(
                 instance.state.selectedColor.rgb.G,
                 instance.state.moveDirection);
+            updateColor(instance);
             break;
         }
         case GLFW_KEY_R: // Update red channel
@@ -141,6 +155,7 @@ static void keyPressCallback(GLFWwindow *window, int key, int scancode, int acti
             instance.state.selectedColor.rgb.R = nextColor(
                 instance.state.selectedColor.rgb.R,
                 instance.state.moveDirection);
+            updateColor(instance);
             break;
         }
 

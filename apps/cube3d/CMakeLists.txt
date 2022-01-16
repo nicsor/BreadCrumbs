@@ -21,7 +21,7 @@ add_executable(${COMPONENT_NAME} ${COMPONENT_SRCS})
 
 # Target dependencies
 # As the message consumer is not connected directly to the app, we must force the linkage.
-target_link_libraries(${COMPONENT_NAME} PRIVATE -Wl,--whole-archive patterns -Wl,--no-whole-archive launcher)
+target_link_libraries(${COMPONENT_NAME} PRIVATE -Wl,--whole-archive patterns common -Wl,--no-whole-archive launcher)
 target_link_libraries(${COMPONENT_NAME} LINK_PUBLIC ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} glfw ${GLFW_LIBRARIES})
 target_include_directories(${COMPONENT_NAME} PRIVATE src)
 target_include_directories(${COMPONENT_NAME} PUBLIC  include)
