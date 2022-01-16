@@ -50,8 +50,8 @@ const uint8_t* CubeData::getLayerData(uint8_t layer)
 util::graphics::Color CubeData::getState(uint32_t x, uint32_t y, uint32_t z)
 {
     util::graphics::Color color;
-    color.rgb.R = m_data[getDataOffset(x, y, z, 0)];
-    color.rgb.G = m_data[getDataOffset(x, y, z, 1)];
+    color.rgb.G = m_data[getDataOffset(x, y, z, 0)];
+    color.rgb.R = m_data[getDataOffset(x, y, z, 1)];
     color.rgb.B = m_data[getDataOffset(x, y, z, 2)];
 
     return color;
@@ -59,8 +59,8 @@ util::graphics::Color CubeData::getState(uint32_t x, uint32_t y, uint32_t z)
 
 void CubeData::setState(uint32_t x, uint32_t y, uint32_t z, const util::graphics::Color &color)
 {
-    m_data[getDataOffset(x, y, z, 0)] = color.rgb.R;
-    m_data[getDataOffset(x, y, z, 1)] = color.rgb.G;
+    m_data[getDataOffset(x, y, z, 0)] = color.rgb.G;
+    m_data[getDataOffset(x, y, z, 1)] = color.rgb.R;
     m_data[getDataOffset(x, y, z, 2)] = color.rgb.B;
 }
 
