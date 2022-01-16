@@ -22,7 +22,8 @@ NetworkTestApp::NetworkTestApp() :
     m_isActive(false),
     m_isServer(true),
     m_updatePeriodMs(2000),
-    m_refreshSrvListPeriodMs(10000)
+    m_refreshSrvListPeriodMs(10000),
+    m_manageConnection(false)
 {
     addPrototype(DOMAIN, this);
 }
@@ -31,7 +32,8 @@ NetworkTestApp::NetworkTestApp(const NetworkTestApp &other) :
     m_isActive(false),
     m_isServer(true),
     m_updatePeriodMs(2000),
-    m_refreshSrvListPeriodMs(10000)
+    m_refreshSrvListPeriodMs(10000),
+    m_manageConnection(false)
 {
 }
 
@@ -47,6 +49,7 @@ void NetworkTestApp::init(const boost::property_tree::ptree::value_type &compone
     m_isServer = runAsMode(conf.get<std::string>("run-as", "server"));
     m_updatePeriodMs = conf.get<uint32_t>("update-period-ms", m_updatePeriodMs);
     m_refreshSrvListPeriodMs = conf.get<uint32_t>("refresh-server-list-ms", m_refreshSrvListPeriodMs);
+    m_manageConnection = conf.get<bool>("manage-connection", m_manageConnection);
 
     subscribe(runAsMode(!m_isServer), std::bind(&NetworkTestApp::handleIncomingData, this, runAsMode(!m_isServer), std::placeholders::_1));
     subscribe("UPDATE_SERVER_LIST", std::bind(&NetworkTestApp::handleServerListUpdate, this, std::placeholders::_1));
@@ -58,19 +61,22 @@ void NetworkTestApp::start()
     {
         m_isActive = true;
 
-        core::MessageData none;
-        post("REFRESH_SERVER_LIST", none);
-
-        if (not m_isServer)
+        if (m_manageConnection)
         {
-            m_refreshServerListTimer = setPeriodicTimer(
-                [this](const boost::system::error_code &e)
-                {
-                    core::MessageData none;
-                    post("REFRESH_SERVER_LIST", none);
-                },
-                std::chrono::milliseconds{m_refreshSrvListPeriodMs}
-            );
+            core::MessageData none;
+            post("REFRESH_SERVER_LIST", none);
+
+            if (not m_isServer)
+            {
+                m_refreshServerListTimer = setPeriodicTimer(
+                    [this](const boost::system::error_code &e)
+                    {
+                        core::MessageData none;
+                        post("REFRESH_SERVER_LIST", none);
+                    },
+                    std::chrono::milliseconds{m_refreshSrvListPeriodMs}
+                );
+            }
         }
 
         m_broadcastMessageTimer = setPeriodicTimer(
@@ -135,12 +141,16 @@ void NetworkTestApp::handleServerListUpdate(const core::util::Attributes &attrs)
             sstr << "[" << it.first.c_str() << "] => " << updateId << std::endl;
         }
     }
-    sstr << "#############################" << std::endl;
-    sstr << "Trigger connect to the first server" << std::endl;
-    LOG_INFO(DOMAIN, "%s", sstr.str().c_str());
 
-    core::MessageData connectDetails;
-    connectDetails.set<int>("update_id", updateId);
-    connectDetails.set<int>("id", 1);
-    post("CONNECT_TO_SERVER", connectDetails);
+    if (m_manageConnection)
+    {
+        sstr << "#############################" << std::endl;
+        sstr << "Trigger connect to the first server" << std::endl;
+        LOG_INFO(DOMAIN, "%s", sstr.str().c_str());
+
+        core::MessageData connectDetails;
+        connectDetails.set<int>("update_id", updateId);
+        connectDetails.set<int>("id", 1);
+        post("CONNECT_TO_SERVER", connectDetails);
+    }
 }

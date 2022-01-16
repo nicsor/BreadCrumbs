@@ -21,14 +21,17 @@
 				},
 				"tcp": {
 					"port": 3000
-				}
+				},
+				"auto-connect": true,
+				"check-period-ms": 6000
 			},
 			"subscribe": ["client"]
 		},
 		"NetworkTestApp": {
 			"run-as": "client",
 			"update-period-ms": 1000,
-			"refresh-server-list-ms": 7500
+			"refresh-server-list-ms": 7500,
+			"manage-connection": false
 		}
 	}
 }

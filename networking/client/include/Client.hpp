@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -62,10 +63,14 @@ namespace networking
         uint16_t m_multicastPort;
 
         uint32_t m_serverRefreshTimeoutMs;
+        uint32_t m_serverCheckPeriodMs;
         uint32_t m_serverMaxRxMsgSizeKb;
         uint16_t m_serverTcpPort;
         std::shared_ptr<boost::asio::ip::tcp::socket> m_serverSocket;
         uint8_t m_maxNbrOfServers;
+        bool m_autoConnect;
+
+        std::optional<core::TimerId> m_serverCheckTimer;
 
         uint32_t m_updateId;
         bool m_isActive;

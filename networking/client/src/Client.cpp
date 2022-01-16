@@ -23,10 +23,12 @@ namespace networking
         m_multicastPort(5000),
         m_serverTcpPort(3000),
         m_serverRefreshTimeoutMs(5000),
+        m_serverCheckPeriodMs(0),
         m_serverMaxRxMsgSizeKb(16),
         m_maxNbrOfServers(2),
         m_updateId(0),
-        m_isActive(true)
+        m_isActive(true),
+        m_autoConnect(false)
     {
         addPrototype("Client", this);
     }
@@ -36,10 +38,12 @@ namespace networking
         m_multicastPort          = other.m_multicastPort;
         m_serverTcpPort          = other.m_serverTcpPort;
         m_serverRefreshTimeoutMs = other.m_serverRefreshTimeoutMs;
+        m_serverCheckPeriodMs    = other.m_serverCheckPeriodMs;
         m_serverMaxRxMsgSizeKb   = other.m_serverMaxRxMsgSizeKb;
         m_maxNbrOfServers        = other.m_maxNbrOfServers;
         m_updateId               = other.m_updateId;
         m_isActive               = other.m_isActive;
+        m_autoConnect            = other.m_autoConnect;
     }
 
     Client *Client::clone() const
@@ -53,12 +57,14 @@ namespace networking
 
         auto &conf = component.second;
 
-        m_multicastAddress = conf.get<std::string>("multicast.group"); // mandatory
-        m_multicastPort = conf.get<uint16_t>("multicast.port", m_multicastPort);
-        m_serverTcpPort = conf.get<uint16_t>("server.tcp.port", m_serverTcpPort);
+        m_multicastAddress       = conf.get<std::string>("multicast.group"); // mandatory
+        m_multicastPort          = conf.get<uint16_t>("multicast.port", m_multicastPort);
+        m_serverTcpPort          = conf.get<uint16_t>("server.tcp.port", m_serverTcpPort);
         m_serverRefreshTimeoutMs = conf.get<uint32_t>("server.max.timeout-ms", m_serverRefreshTimeoutMs);
-        m_serverMaxRxMsgSizeKb = conf.get<uint32_t>("server.max.rx-size-kb", m_serverMaxRxMsgSizeKb);
-        m_maxNbrOfServers = conf.get<uint8_t>("server.max.count", m_maxNbrOfServers);
+        m_serverMaxRxMsgSizeKb   = conf.get<uint32_t>("server.max.rx-size-kb", m_serverMaxRxMsgSizeKb);
+        m_maxNbrOfServers        = conf.get<uint8_t>("server.max.count", m_maxNbrOfServers);
+        m_serverCheckPeriodMs    = conf.get<uint32_t>("server.check-period-ms", m_serverCheckPeriodMs);
+        m_autoConnect            = conf.get<bool>("server.auto-connect", m_autoConnect);
 
         subscribe("CONNECT_TO_SERVER", std::bind(&Client::connectToServer, this, std::placeholders::_1));
         subscribe("REFRESH_SERVER_LIST", std::bind(&Client::refreshServerList, this));
@@ -73,6 +79,14 @@ namespace networking
             std::string msgName = subscription.second.get<std::string>("");
             LOG_ERROR(DOMAIN, "Subscribing to [%s] to handle network broadcasts", msgName.c_str());
             subscribe(msgName, std::bind(&Client::sendBroadcast, this, msgName, std::placeholders::_1));
+        }
+
+        if (m_serverCheckPeriodMs)
+        {
+            m_serverCheckTimer = setPeriodicTimer(
+                [this](const boost::system::error_code &e) { refreshServerList(); },
+                std::chrono::milliseconds{m_serverCheckPeriodMs}
+            );
         }
 
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
@@ -101,6 +115,11 @@ namespace networking
         m_isActive = false;
 
         disconnect();
+
+        if (m_serverCheckTimer != std::nullopt)
+        {
+            cancelTimer(*m_serverCheckTimer);
+        }
 
         if (m_refreshServerListThread.joinable())
         {
@@ -192,6 +211,15 @@ namespace networking
 
                     post("UPDATE_SERVER_LIST", attr);
                     ++serverCount;
+
+                    if (m_autoConnect and ((m_serverSocket == nullptr) or not m_serverSocket->is_open()))
+                    {
+                        // Auto connect to the first server in the list
+                        core::MessageData connectDetails;
+                        connectDetails.set<int>("update_id", m_updateId);
+                        connectDetails.set<int>("id", 1);
+                        connectToServer(connectDetails);
+                    }
                 }
             }
             else

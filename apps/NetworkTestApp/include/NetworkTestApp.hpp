@@ -29,6 +29,7 @@ private:
     bool m_isServer;
     uint32_t m_updatePeriodMs;
     uint32_t m_refreshSrvListPeriodMs;    
+    bool m_manageConnection;
     std::thread m_runner;
 
     core::TimerId m_refreshServerListTimer;
