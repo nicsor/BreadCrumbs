@@ -37,6 +37,21 @@
 					"port": 3000
 				}
 			}
-		}
+		},
+		"ledTest": {
+                        "update-rate-ms": 150,
+                        "cube-size": 8,
+                        "enabled": false
+                },
+		"snowFlake": {
+                        "update-rate-ms": 150,
+                        "snow-rate-percent": 5,
+                        "cube-size": 8,
+                        "enabled": false
+                },
+		"boxIt": {
+                        "cube-size": 8,
+                        "enabled": false
+                }
         }
 }
