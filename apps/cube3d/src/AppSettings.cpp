@@ -27,5 +27,4 @@ void AppSettings::configure(const boost::property_tree::ptree& configuration)
 
     config.renderIntervalMs = configuration.get<int>("renderInterval", config.renderIntervalMs);
     config.mouseRotationRange = configuration.get<uint32_t>("rotation-range", config.mouseRotationRange);
-    config.colorStep = configuration.get<uint8_t>("colorStep", config.colorStep);
 }

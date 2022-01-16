@@ -8,6 +8,27 @@ namespace
 
 AppSettings AppSettings::m_instance;
 
+static uint8_t nextColor(uint8_t color, bool increase)
+{
+    int value = static_cast<uint32_t>(color);
+
+    switch(color)
+    {
+        case 0x0:
+            return (increase) ? 0x1 : 0x0;
+        case 0x1:
+            return (increase) ? 0x11 : 0x0;
+        case 0x11:
+            return (increase) ? 0x55 : 0x1;
+        case 0x55:
+            return (increase) ? 0xFF : 0x11;
+        case 0xFF:
+            return (increase) ? 0xFF : 0x55;
+    }
+
+    return 0x55;
+}
+
 static void mouseButtonPressCallback(GLFWwindow *window, int button, int action, int mods)
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT)
@@ -103,26 +124,23 @@ static void keyPressCallback(GLFWwindow *window, int key, int scancode, int acti
 
         case GLFW_KEY_B: // Update blue channel
         {
-            int value = static_cast<uint32_t>(instance.state.selectedColor.rgb.B);
-            value += (instance.state.moveDirection) ? instance.config.colorStep : -instance.config.colorStep;
-            value = (value <= 0) ? 0 : (value >= 0xFF) ? 0xFF : value;
-            instance.state.selectedColor.rgb.B = static_cast<uint8_t>(value);
+            instance.state.selectedColor.rgb.B = nextColor(
+                instance.state.selectedColor.rgb.B,
+                instance.state.moveDirection);
             break;
         }
         case GLFW_KEY_G: // Update green channel
         {
-            int value = static_cast<uint32_t>(instance.state.selectedColor.rgb.G);
-            value += (instance.state.moveDirection) ? instance.config.colorStep : -instance.config.colorStep;
-            value = (value <= 0) ? 0 : (value >= 0xFF) ? 0xFF : value;
-            instance.state.selectedColor.rgb.G = static_cast<uint8_t>(value);
+            instance.state.selectedColor.rgb.G = nextColor(
+                instance.state.selectedColor.rgb.G,
+                instance.state.moveDirection);
             break;
         }
         case GLFW_KEY_R: // Update red channel
         {
-            int value = static_cast<uint32_t>(instance.state.selectedColor.rgb.R);
-            value += (instance.state.moveDirection) ? instance.config.colorStep : -instance.config.colorStep;
-            value = (value <= 0) ? 0 : (value >= 0xFF) ? 0xFF : value;
-            instance.state.selectedColor.rgb.R = static_cast<uint8_t>(value);
+            instance.state.selectedColor.rgb.R = nextColor(
+                instance.state.selectedColor.rgb.R,
+                instance.state.moveDirection);
             break;
         }
 

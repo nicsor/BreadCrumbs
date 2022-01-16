@@ -74,7 +74,6 @@ public:
 
         double scalingFactor = 0.02;
         double mouseRotationRange = 50;
-        uint8_t colorStep = 10;
         double rotationFactor = 1;
         double translationFactor = 1;        
     } config;
