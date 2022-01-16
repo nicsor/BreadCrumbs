@@ -27,7 +27,7 @@ void AppSettings::configure(const boost::property_tree::ptree& configuration)
     LOG_INFO(DOMAIN, "Cycle period: [%d ms]", cyclePeriodMs);
 
     statePublishPeriodMs = configuration.get<uint32_t>("state-publish-period-ms", statePublishPeriodMs);
-    LOG_INFO(DOMAIN, "State publish period: [%d ms]%s", statePublishPeriodMs);
+    LOG_INFO(DOMAIN, "State publish period: [%d ms]", statePublishPeriodMs);
 
     if (enableController)
     {
