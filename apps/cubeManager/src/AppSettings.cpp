@@ -9,6 +9,8 @@
 
 #include "AppSettings.hpp"
 
+using namespace apps::cubeManager;
+
 namespace
 {
     const char * DOMAIN = "AppSettings";

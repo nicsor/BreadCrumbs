@@ -14,34 +14,40 @@
 
 #include "CubeController.hpp"
 
-class AppSettings
+namespace apps
 {
-public:
-    static AppSettings& getInstance()
+    namespace cubeManager
     {
-        return m_instance;
+        class AppSettings
+        {
+        public:
+            static AppSettings& getInstance()
+            {
+                return m_instance;
+            }
+
+        private:
+            AppSettings() :
+                pins{0},
+                cyclePeriodMs(5),
+                statePublishPeriodMs(0),
+                enableController(true)
+            {
+            }
+
+        public:
+            void configure(const boost::property_tree::ptree& config);
+
+        public:
+            CubePinout pins;
+            uint32_t cyclePeriodMs;
+            uint32_t statePublishPeriodMs;
+            bool enableController;
+
+        private:
+            static AppSettings m_instance;
+        };
     }
-
-private:
-    AppSettings() :
-        pins{0},
-        cyclePeriodMs(5),
-        statePublishPeriodMs(0),
-        enableController(true)
-    {        
-    }
-
-public:
-    void configure(const boost::property_tree::ptree& config);
-
-public:
-    CubePinout pins;
-    uint32_t cyclePeriodMs;
-    uint32_t statePublishPeriodMs;
-    bool enableController;
-
-private:
-    static AppSettings m_instance;
-};
+}
 
 #endif /* _APPS_CUBEMANAGER_APPSETTINGS_ */

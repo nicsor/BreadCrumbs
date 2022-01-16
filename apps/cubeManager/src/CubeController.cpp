@@ -7,6 +7,8 @@
 
 #include "CubeController.hpp"
 
+using namespace apps::cubeManager;
+
 namespace
 {
     const char * DOMAIN = "CubeController";

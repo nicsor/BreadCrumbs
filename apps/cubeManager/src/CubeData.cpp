@@ -9,6 +9,8 @@
 
 #include <core/logger/event_logger.h>
 
+using namespace apps::cubeManager;
+
 namespace
 {
     const uint32_t DIMENSION = 8;
