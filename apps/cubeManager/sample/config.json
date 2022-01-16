@@ -50,8 +50,9 @@
                         "enabled": false
                 },
 		"boxIt": {
+                        "update-rate-ms": 0,
                         "cube-size": 8,
-                        "enabled": false
+                        "enabled": true
                 }
         }
 }

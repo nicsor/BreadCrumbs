@@ -13,7 +13,7 @@ namespace
 BoxIt BoxIt::_prototype;
 
 BoxIt::BoxIt() :
-    m_updatePeriodMs(1000),
+    m_updatePeriodMs(0),
     m_enabled(false),
     m_cubeData(8)
 {
@@ -79,9 +79,15 @@ void BoxIt::start()
 
     if (m_enabled)
     {
-        m_timerId = setPeriodicTimer(
-            std::bind(&BoxIt::update, this, std::placeholders::_1),
-            std::chrono::milliseconds(m_updatePeriodMs));
+        boost::system::error_code error;
+        update(error);
+
+        if (m_updatePeriodMs > 0)
+        {
+            m_timerId = setPeriodicTimer(
+                std::bind(&BoxIt::update, this, std::placeholders::_1),
+                std::chrono::milliseconds(m_updatePeriodMs));
+        }
     }
 }
 
