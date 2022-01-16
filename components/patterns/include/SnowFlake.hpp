@@ -23,6 +23,7 @@ protected:
 private:
     uint32_t m_updatePeriodMs;
     uint8_t m_updateRatePercentage;
+    bool m_enabled;
     core::TimerId m_timerId;
     util::math::Cube<util::graphics::Color> m_cubeData;
 

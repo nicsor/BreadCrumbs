@@ -16,8 +16,34 @@
 		"ledTest": {
                         "update-rate-ms": 150,
                         "snow-rate-percent": 25,
-                        "cube-size": 10
-                }
+                        "cube-size": 8,
+                        "enabled": true
+                },
+		"snowFlake": {
+                        "update-rate-ms": 150,
+                        "snow-rate-percent": 5,
+                        "cube-size": 8,
+                        "enabled": false
+                },
+		"Client": {
+			"multicast": {
+				"port": 5000,
+				"group": "239.255.0.1"
+			},
+			"server": {
+				"max": {
+					"rx-size-kb": 16,
+					"count": 1,
+					"timeout-ms": 5000
+				},
+				"tcp": {
+					"port": 3000
+				},
+				"auto-connect": true,
+				"check-period-ms": 6000
+			},
+			"subscribe": ["updateCube", "updateLed"]
+		}
 	}
 
 }

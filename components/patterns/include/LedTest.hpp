@@ -26,6 +26,7 @@ private:
     uint8_t m_activeX;
     uint8_t m_activeY;
     uint8_t m_activeZ;
+    bool m_enabled;
     core::TimerId m_timerId;
     util::math::Cube<util::graphics::Color> m_cubeData;
 

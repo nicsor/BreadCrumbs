@@ -13,6 +13,7 @@ namespace
 LedTest LedTest::_prototype;
 
 LedTest::LedTest() :
+    m_enabled(false),
     m_cubeData(8),
     m_updatePeriodMs(100),
     m_updateRatePercentage(25),
@@ -36,7 +37,7 @@ void LedTest::init(const boost::property_tree::ptree::value_type& component)
 
     cubeSize = config.get<uint32_t>("cube-size", cubeSize);
     m_updatePeriodMs = config.get<uint32_t>("update-rate-ms", m_updatePeriodMs);
-    m_updateRatePercentage = config.get<uint8_t>("snow-rate-percent", m_updateRatePercentage);
+    m_enabled = config.get<bool>("enabled", m_enabled);
 
     if (m_cubeData.size() != cubeSize)
     {
@@ -62,9 +63,12 @@ void LedTest::start()
         }
     }
 
-    m_timerId = setPeriodicTimer(
-        std::bind(&LedTest::ledTest, this, std::placeholders::_1),
-        std::chrono::milliseconds(100));
+    if (m_enabled)
+    {
+        m_timerId = setPeriodicTimer(
+            std::bind(&LedTest::ledTest, this, std::placeholders::_1),
+            std::chrono::milliseconds(m_updatePeriodMs));
+    }
 }
 
 void LedTest::ledTest(const boost::system::error_code &e)
