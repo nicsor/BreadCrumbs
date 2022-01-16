@@ -62,6 +62,12 @@ static void mouseButtonPressCallback(GLFWwindow *window, int button, int action,
     }
 }
 
+static void mouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    AppSettings &instance = AppSettings::getInstance();
+    instance.state.scalingFactor += yoffset * instance.config.scalingFactor * instance.state.scalingFactor;
+}
+
 static void keyPressCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -287,6 +293,7 @@ bool Cube3dComponent::glInitialize(util::math::Cube<util::graphics::Color> &m_cu
     // Register callbacks
     glfwSetKeyCallback(instance.state.window, keyPressCallback);
     glfwSetMouseButtonCallback(instance.state.window, mouseButtonPressCallback);
+    glfwSetScrollCallback(instance.state.window, mouseScrollCallback);
 
     glfwSetInputMode(instance.state.window, GLFW_STICKY_KEYS, GLFW_TRUE);
     glfwSetInputMode(instance.state.window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
