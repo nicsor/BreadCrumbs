@@ -12,6 +12,8 @@ namespace
     const char *DOMAIN = "cube3D";
 }
 
+void closeApp(int code);
+
 Cube3dComponent Cube3dComponent::_prototype;
 
 Cube3dComponent::Cube3dComponent() :
@@ -139,7 +141,7 @@ void Cube3dComponent::start()
                 std::this_thread::sleep_for(std::chrono::milliseconds(instance.config.renderIntervalMs));
             }
 
-            LOG_PANIC(DOMAIN, "Exiting ...");
+            closeApp(0);
         });
 }
 
