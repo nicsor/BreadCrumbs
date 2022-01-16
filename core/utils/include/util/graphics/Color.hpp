@@ -8,7 +8,7 @@
 #ifndef _UTIL_GRAPHICS_COLOR_H_
 #define _UTIL_GRAPHICS_COLOR_H_
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <boost/serialization/serialization.hpp>
 

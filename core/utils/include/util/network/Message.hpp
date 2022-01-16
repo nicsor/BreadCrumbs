@@ -8,7 +8,7 @@
 #ifndef _UTIL_NETWORK_MESSAGE_H_
 #define _UTIL_NETWORK_MESSAGE_H_
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>

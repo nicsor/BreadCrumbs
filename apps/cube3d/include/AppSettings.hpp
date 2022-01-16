@@ -1,7 +1,7 @@
 #ifndef _APPS_CUBE3D_APPSETTINGS_
 #define _APPS_CUBE3D_APPSETTINGS_
 
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 
 #include <GL/glut.h>

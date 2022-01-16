@@ -5,8 +5,7 @@
  * Contact: nicu@natea.ro
  */
 
-#include <stdint.h>
-
+#include <cstdint>
 #include <map>
 #include <mutex>
 
