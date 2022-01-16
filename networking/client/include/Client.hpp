@@ -39,7 +39,7 @@ namespace networking
     protected:
         void connectToServer(core::MessageData attr);
         void refreshServerList();
-        void sendBroadcast(const core::MessageData &attrs);
+        void sendBroadcast(const core::MessageId &id, const core::MessageData &attrs);
 
     protected:
         void disconnect();

@@ -48,7 +48,7 @@ void NetworkTestApp::init(const boost::property_tree::ptree::value_type &compone
     m_updatePeriodMs = conf.get<uint32_t>("update-period-ms", m_updatePeriodMs);
     m_refreshSrvListPeriodMs = conf.get<uint32_t>("refresh-server-list-ms", m_refreshSrvListPeriodMs);
 
-    subscribe("NETWORK_DATA", std::bind(&NetworkTestApp::handleIncomingData, this, std::placeholders::_1));
+    subscribe(runAsMode(!m_isServer), std::bind(&NetworkTestApp::handleIncomingData, this, runAsMode(!m_isServer), std::placeholders::_1));
     subscribe("UPDATE_SERVER_LIST", std::bind(&NetworkTestApp::handleServerListUpdate, this, std::placeholders::_1));
 }
 
@@ -84,8 +84,7 @@ void NetworkTestApp::start()
 
                 core::MessageData attrs;
                 attrs.set<std::string>("data", message);
-                attrs.set<std::string>("id", runAsMode(m_isServer));
-                post("NETWORK_BROADCAST", attrs);
+                post(runAsMode(m_isServer), attrs);
             },
             std::chrono::milliseconds{m_updatePeriodMs}
         );
@@ -107,10 +106,10 @@ void NetworkTestApp::stop()
     }
 }
 
-void NetworkTestApp::handleIncomingData(const core::MessageData &attrs)
+void NetworkTestApp::handleIncomingData(const core::MessageId &id, const core::MessageData &attrs)
 {
     LOG_INFO(DOMAIN, "NETWORK_DATA: Id[%s] Data[%s]",
-        attrs.get<std::string>("id").c_str(),
+        id.c_str(),
         attrs.get<std::string>("data").c_str()
     );
 }

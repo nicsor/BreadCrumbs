@@ -19,7 +19,7 @@ public:
     void stop() override;
 
 protected:
-    void handleIncomingData(const core::MessageData &attrs);
+    void handleIncomingData(const core::MessageId &id, const core::MessageData &attrs);
     void handleServerListUpdate(const core::MessageData &attrs);
 
 private:

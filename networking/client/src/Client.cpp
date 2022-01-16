@@ -60,9 +60,20 @@ namespace networking
         m_serverMaxRxMsgSizeKb = conf.get<uint32_t>("server.max.rx-size-kb", m_serverMaxRxMsgSizeKb);
         m_maxNbrOfServers = conf.get<uint8_t>("server.max.count", m_maxNbrOfServers);
 
-        subscribe("NETWORK_BROADCAST", std::bind(&Client::sendBroadcast, this, std::placeholders::_1));
         subscribe("CONNECT_TO_SERVER", std::bind(&Client::connectToServer, this, std::placeholders::_1));
         subscribe("REFRESH_SERVER_LIST", std::bind(&Client::refreshServerList, this));
+
+        // Broascast message
+        boost::property_tree::ptree defaultSubscribe;
+        boost::property_tree::ptree networkData;
+        networkData.put("","NETWORK_BROADCAST");
+        defaultSubscribe.push_back(std::make_pair("", networkData));
+        for (auto &subscription : conf.get_child("subscribe", defaultSubscribe))
+        {
+            std::string msgName = subscription.second.get<std::string>("");
+            LOG_ERROR(DOMAIN, "Subscribing to [%s] to handle network broadcasts", msgName.c_str());
+            subscribe(msgName, std::bind(&Client::sendBroadcast, this, msgName, std::placeholders::_1));
+        }
 
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
@@ -199,7 +210,7 @@ namespace networking
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
 
-    void Client::sendBroadcast(const core::MessageData &attrs)
+    void Client::sendBroadcast(const core::MessageId &id, const core::MessageData &attrs)
     {
         LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
         if (not m_isActive or not m_serverSocket or not m_serverSocket->is_open())
@@ -211,9 +222,7 @@ namespace networking
             return;
         }
 
-        util::network::Message message(
-            attrs.get<std::string>("id"),
-            attrs.get<std::string>("data"));
+        util::network::Message message(id, attrs.get<std::string>("data"));
         std::shared_ptr<std::string> buf = std::make_shared<std::string>(message.toString());
 
         auto broadcast_handler = [this, buf](const boost::system::error_code &error, size_t bytes_sent)
@@ -281,12 +290,11 @@ namespace networking
             // Publish message
             {
                 core::MessageData attrs;
-                attrs.set<std::string>("id", message.getId());
                 attrs.set<std::string>("data", message.getData());
                 LOG_DEBUG(DOMAIN, "Remote[%s]: Received message with id [%s]",
                     remoteIp.c_str(),
                     message.getId().c_str());
-                post("NETWORK_DATA", attrs);
+                post(message.getId(), attrs);
             }
         }
 

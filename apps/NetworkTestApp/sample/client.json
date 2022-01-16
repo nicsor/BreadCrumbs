@@ -22,7 +22,8 @@
 				"tcp": {
 					"port": 3000
 				}
-			}
+			},
+			"subscribe": ["client"]
 		},
 		"NetworkTestApp": {
 			"run-as": "client",

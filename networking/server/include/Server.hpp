@@ -39,7 +39,7 @@ namespace networking
         void stop() override;
 
     protected:
-        void sendBroadcast(const core::MessageData &attrs);
+        void sendBroadcast(const core::MessageId &id, const core::MessageData &attrs);
 
         void startAdvertising();
         void startListeningTcp();

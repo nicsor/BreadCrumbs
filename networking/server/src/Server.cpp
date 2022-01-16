@@ -53,7 +53,17 @@ namespace networking
         m_serverListenPort = conf.get<uint16_t>("server.tcp.port", m_serverListenPort);
         m_serverMaxRxMsgSizeKb = conf.get<uint32_t>("server.max.rx-size-kb", m_serverMaxRxMsgSizeKb);
 
-        subscribe("NETWORK_BROADCAST", std::bind(&Server::sendBroadcast, this, std::placeholders::_1));
+        // Broascast message
+        boost::property_tree::ptree defaultSubscribe;
+        boost::property_tree::ptree networkData;
+        networkData.put("","NETWORK_BROADCAST");
+        defaultSubscribe.push_back(std::make_pair("", networkData));
+        for (auto &subscription : conf.get_child("subscribe", defaultSubscribe))
+        {
+            std::string msgName = subscription.second.get<std::string>("");
+            LOG_ERROR(DOMAIN, "Subscribing to [%s] to handle network broadcasts", msgName.c_str());
+            subscribe(msgName, std::bind(&Server::sendBroadcast, this, msgName, std::placeholders::_1));
+        }
     }
 
     void Server::start()
@@ -132,11 +142,11 @@ namespace networking
         LOG_DEBUG(DOMAIN, "Exited %s", __PRETTY_FUNCTION__);
     }
 
-    void Server::sendBroadcast(const core::MessageData &attrs)
+    void Server::sendBroadcast(const core::MessageId &id, const core::MessageData &attrs)
     {
         LOG_DEBUG(DOMAIN, "Entered %s", __PRETTY_FUNCTION__);
 
-        util::network::Message message(attrs.get<std::string>("id"), attrs.get<std::string>("data"));
+        util::network::Message message(id, attrs.get<std::string>("data"));
         std::shared_ptr<std::string> buf = std::make_shared<std::string>(message.toString());
 
         std::scoped_lock<std::mutex> lock(*m_clientsMutex);
@@ -330,12 +340,11 @@ namespace networking
 
             {
                 core::MessageData attrs;
-                attrs.set<std::string>("id", message.getId());
                 attrs.set<std::string>("data", message.getData());
                 LOG_DEBUG(DOMAIN, "Client[%s]: Received message with id [%s]",
                     clientIp.c_str(),
                     message.getId().c_str());
-                post("NETWORK_DATA", attrs);
+                post(message.getId(), attrs);
             }
         }
 
