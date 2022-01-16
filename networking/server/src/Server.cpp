@@ -334,7 +334,7 @@ namespace networking
 
             if (not message.isValid())
             {
-                LOG_ERROR(DOMAIN, "Client[%s]: Invalid message received. Closing connection.",
+                LOG_ERROR(DOMAIN, "Client[%s]: Invalid message received. Skiping.",
                     clientIp.c_str());
                 break;
             }

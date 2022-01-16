@@ -312,7 +312,7 @@ namespace networking
             {
                 LOG_ERROR(DOMAIN, "Remote[%s]: Invalid message received. Closing connection.",
                     remoteIp.c_str());
-                return;
+                continue;
             }
 
             // Publish message
