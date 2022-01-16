@@ -15,15 +15,18 @@
                 },
 		"ledTest": {
                         "update-rate-ms": 150,
-                        "snow-rate-percent": 25,
                         "cube-size": 8,
-                        "enabled": true
+                        "enabled": false
                 },
 		"snowFlake": {
                         "update-rate-ms": 150,
                         "snow-rate-percent": 5,
                         "cube-size": 8,
                         "enabled": false
+                },
+		"boxIt": {
+                        "cube-size": 8,
+                        "enabled": true
                 },
 		"Client": {
 			"multicast": {
