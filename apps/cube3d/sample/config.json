@@ -29,8 +29,13 @@
 		"marques": {
             "update-rate-ms": 100,
             "cube-size": 8,
-            "enabled": true,
+            "enabled": false,
             "text": "A fost o data ca-n povesti ..."
+        },
+		"random": {
+            "update-rate-ms": 400,
+            "cube-size": 8,
+            "enabled": true
         },
 		"Client": {
 			"multicast": {
