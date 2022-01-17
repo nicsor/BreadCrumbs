@@ -302,15 +302,15 @@ namespace networking
             }
             catch (std::exception e)
             {
-                LOG_ERROR(DOMAIN, "Remote[%s]: Unable to deserialize message received. Disconnecting[%s]",
+                LOG_ERROR(DOMAIN, "Remote[%s]: Unable to deserialize message received. Skipping[%s]",
                     remoteIp.c_str(),
                     e.what());
-                break;
+                continue;
             }
 
             if (not message.isValid())
             {
-                LOG_ERROR(DOMAIN, "Remote[%s]: Invalid message received. Closing connection.",
+                LOG_ERROR(DOMAIN, "Remote[%s]: Invalid message received. Skipping.",
                     remoteIp.c_str());
                 continue;
             }

@@ -326,17 +326,17 @@ namespace networking
             }
             catch (std::exception e)
             {
-                LOG_ERROR(DOMAIN, "Client[%s]: Unable to deserialize message received. Disconnecting[%s]",
+                LOG_ERROR(DOMAIN, "Client[%s]: Unable to deserialize message received. Skiping[%s]",
                     clientIp.c_str(),
                     e.what());
-                break;
+                continue;
             }
 
             if (not message.isValid())
             {
                 LOG_ERROR(DOMAIN, "Client[%s]: Invalid message received. Skiping.",
                     clientIp.c_str());
-                break;
+                continue;
             }
 
             {
