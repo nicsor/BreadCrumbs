@@ -3,6 +3,12 @@
 Collection of small components and applications around a potentialy stupid management system :)
 - Work in progress -
 
+## Sample application
+
+To understand better what the code could be used for, here's a demo video for an application:
+
+[<img src="https://img.youtube.com/vi/fpLWvIQrb7Y/maxresdefault.jpg" width="50%">](https://youtu.be/fpLWvIQrb7Y)
+
 ## Build Dependencies:
 The docker image attached is provided to help build the applications.
 It's slightly bigger than necesary as it includes some libraries to be used in the future.
