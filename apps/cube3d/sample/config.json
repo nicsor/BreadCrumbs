@@ -35,6 +35,11 @@
 		"random": {
             "update-rate-ms": 400,
             "cube-size": 8,
+            "enabled": false
+        },
+        "waves": {
+            "update-rate-ms": 150,
+            "cube-size": 8,
             "enabled": true
         },
 		"Client": {
